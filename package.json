@@ -10,6 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "google-spreadsheet": "^2.0.4",
+    "pdfkit": "^0.8.3",
+    "scp2": "^0.5.0",
     "twilio": "^3.15.0"
   }
 }
