@@ -9,8 +9,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "config": "^1.30.0",
     "google-spreadsheet": "^2.0.4",
     "pdfkit": "^0.8.3",
+    "request": "^2.85.0",
+    "request-promise-native": "^1.0.5",
     "scp2": "^0.5.0",
     "twilio": "^3.15.0"
   }
