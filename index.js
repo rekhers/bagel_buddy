@@ -3,6 +3,7 @@ const { promisify } = require('util');
 
 const GoogleSpreadsheet = require('google-spreadsheet');
 const PDFDocument = require('pdfkit');
+const Twilio = require('twilio');
 const config = require('config');
 const request = require('request-promise-native');
 
@@ -11,6 +12,7 @@ const { Client } = require('scp2');
 const googleCreds = config.get('google');
 const atlCreds = config.get('theatlantic');
 const slackInfo = config.get('slack');
+const { accountSID, authToken } = config.get('twilio');
 
 // stack some || statements
 if (
@@ -64,21 +66,38 @@ function handleSCP(content) {
  * Send a fax to Twilio
  * @param  {String} filename The file name
  */
-function sendFax(filename) {
-  // just pass through for meow
-  handleNotifications(filename);
+async function sendFax(filename) {
+  try {
+    const twilio = Twilio(accountSID, authToken);
+    const mediaUrl = `https://cdn.theatlantic.com/assets/media/files/dso-bagels/${filename}`;
+    const opts = {
+      // ATL helpdesk
+      // to: '+12022666001',
+
+      // Bagel people
+      to: '+12024667961',
+      from: '+15025136369',
+      mediaUrl,
+    };
+
+    await twilio.fax.v1.faxes.create(opts);
+
+    handleNotifications(mediaUrl);
+  } catch(err) {
+    console.log(err);
+  }
 }
 
 /**
  * Notify parties of successful delivery
  * @param  {String} filename The file name
  */
-async function handleNotifications(filename) {
+async function handleNotifications(mediaUrl) {
   const options = {
     method: 'POST',
     uri: slackInfo.webhookURL,
     body: {
-      channel: '@jgreen',
+      channel: '#dso-bagels',
       icon_emoji: ':bagel:',
       username: 'Bagel.Bot',
       mrkdwn: true,
@@ -87,8 +106,7 @@ async function handleNotifications(filename) {
 
 Hi there, this is a friendly reminder that I have sent the bagel order for the week.
 
-You can see the current order by navigating to: https://cdn.theatlantic.com/assets/media/files/dso-bagels/${filename}.
-      `
+You can see the current order by navigating to: ${mediaUrl}.`
     },
     json: true
   };
