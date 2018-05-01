@@ -1,4 +1,5 @@
-const { readFile, createWriteStream } = require('fs');
+const { readFile, createWriteStream, statSync } = require('fs');
+const { join } = require('path');
 const { promisify } = require('util');
 
 const GoogleSpreadsheet = require('google-spreadsheet');
@@ -7,23 +8,21 @@ const Twilio = require('twilio');
 const config = require('config');
 const request = require('request-promise-native');
 
-const { Client } = require('scp2');
-
 const googleCreds = config.get('google');
-const atlCreds = config.get('theatlantic');
 const slackInfo = config.get('slack');
-const { accountSID, authToken } = config.get('twilio');
+const twilioCreds = config.get('twilio');
 
 // stack some || statements
 if (
   !googleCreds ||
-  !atlCreds ||
-  !slackInfo
+  !slackInfo ||
+  !twilioCreds
 ) {
   console.error('There\'s some credentials missing somewhere...');
   process.exit();
 }
 
+const { accountSID, authToken } = twilioCreds;
 const { spreadsheet_id } = googleCreds;
 const { useServiceAccountAuth, getInfo } = new GoogleSpreadsheet(spreadsheet_id);
 const doc = new PDFDocument;
@@ -46,29 +45,16 @@ async function getRows(info, tabId = 1) {
 }
 
 /**
- * Handle the scp upload
- * @param  {Buffer} content The content buffer
- */
-function handleSCP(content) {
-  const filename = `bagel-${Date.now()}.pdf`;
-  const destination = `/www/cmsprod/shared/assets/media/files/dso-bagels/${filename}`;
-  const client = new Client(atlCreds);
-
-  client.write({ destination, content }, (err) => {
-    if (err) {
-      console.error(err);
-    }
-    sendFax(filename);
-  });
-}
-
-/**
  * Send a fax to Twilio
  * @param  {String} filename The file name
  */
 async function sendFax(filename) {
+  console.log('sendFax');
+  console.log(statSync(`./${filename}`));
+  process.exit();
+
   try {
-    const twilio = Twilio(accountSID, authToken);
+    /*const twilio = Twilio(accountSID, authToken);
     const mediaUrl = `https://cdn.theatlantic.com/assets/media/files/dso-bagels/${filename}`;
     const opts = {
       // ATL helpdesk
@@ -82,7 +68,7 @@ async function sendFax(filename) {
 
     await twilio.fax.v1.faxes.create(opts);
 
-    handleNotifications(mediaUrl);
+    handleNotifications(mediaUrl);*/
   } catch(err) {
     console.log(err);
   }
@@ -130,10 +116,12 @@ async function init() {
     const bagelCount = await getRows(info, 1);
     const contactInfo = await getRows(info, 2);
 
-    const buffer = [];
+    const filename = `bagel-${Date.now()}.pdf`;
+    const dir = '/www/cmsprod/shared/assets/media/files/dso-bagels';
+    const destination = join(dir, filename);
 
-    doc.on('data', d => buffer.push(d));
-    doc.on('end', () => handleSCP(Buffer.concat(buffer)));
+    doc.on('end', () => sendFax(filename));
+    doc.pipe(createWriteStream(destination));
 
     doc.fontSize(24);
     doc.text(`${info.title}`, {
