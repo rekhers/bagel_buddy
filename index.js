@@ -49,12 +49,9 @@ async function getRows(info, tabId = 1) {
  * @param  {String} filename The file name
  */
 async function sendFax(filename) {
-  console.log('sendFax');
-  console.log(statSync(`./${filename}`));
-  process.exit();
-
   try {
-    /*const twilio = Twilio(accountSID, authToken);
+
+    const twilio = Twilio(accountSID, authToken);
     const mediaUrl = `https://cdn.theatlantic.com/assets/media/files/dso-bagels/${filename}`;
     const opts = {
       // ATL helpdesk
@@ -65,10 +62,8 @@ async function sendFax(filename) {
       from: '+15025136369',
       mediaUrl,
     };
-
     await twilio.fax.v1.faxes.create(opts);
-
-    handleNotifications(mediaUrl);*/
+    handleNotifications(mediaUrl);
   } catch(err) {
     console.log(err);
   }

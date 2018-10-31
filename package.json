@@ -1,6 +1,6 @@
 {
-  "name": "bagel_spreadsheet",
-  "version": "1.0.0",
+  "name": "bagel_buddy",
+  "version": "2.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
