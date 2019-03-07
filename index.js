@@ -82,12 +82,7 @@ async function handleNotifications(mediaUrl) {
       icon_emoji: ':bagel:',
       username: 'Bagel.Bot',
       mrkdwn: true,
-      text: `
-*I've sent the bagel order!*
-
-Hi there, this is a friendly reminder that I have sent the bagel order for the week.
-
-You can see the current order by navigating to: ${mediaUrl}.`
+      text: `Yes, hello. I've sent <${mediaUrl}|this week's order>.`
     },
     json: true
   };
