@@ -7,6 +7,7 @@ const PDFDocument = require('pdfkit');
 const Twilio = require('twilio');
 const config = require('config');
 const request = require('request-promise-native');
+const fetch = require('node-fetch');
 
 const googleCreds = config.get('google');
 const slackInfo = config.get('slack');
@@ -62,12 +63,48 @@ async function sendFax(filename) {
       from: '+15025136369',
       mediaUrl,
     };
-    await twilio.fax.v1.faxes.create(opts);
-    handleNotifications(mediaUrl);
+    await twilio.fax.v1.faxes.create(opts).then(fax => checkFaxStatus(fax))
+    // handleNotifications(mediaUrl);
   } catch(err) {
     console.log(err);
   }
 }
+
+
+/**
+ * Check the status of the fax 
+ * @param  {fax} filename The fax object
+ * 
+ */
+function checkFaxStatus() {
+  const options = {
+    url: 'https://fax.twilio.com/v1/Faxes/FX44068e0392b1ab3f9d74fea6fcb6122c',
+    auth: {
+      user: accountSID,
+      password: authToken
+    }
+  }
+  
+    request(options, (err, res, body) => {
+      if (err) {
+        console.dir(err)
+        return
+      }
+      console.dir(JSON.parse(body).status);
+
+
+      if (JSON.parse(body).status === "delivered") {
+        
+      } 
+    })
+
+  }
+
+
+async function getData() {
+  await checkFaxStatus();
+}
+
 
 /**
  * Notify parties of successful delivery
@@ -110,7 +147,9 @@ async function init() {
     const dir = '/www/cmsprod/shared/assets/media/files/dso-bagels';
     const destination = join(dir, filename);
 
-    doc.on('end', () => sendFax(filename));
+    // doc.on('end', () => sendFax(filename));
+
+    console.log('ho ho test');
     doc.pipe(createWriteStream(destination));
 
     doc.fontSize(24);
@@ -159,4 +198,5 @@ async function init() {
   }
 }
 
-init();
+getData();
+// init();
