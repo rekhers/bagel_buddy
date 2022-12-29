@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "config": "^1.30.0",
+    "config": "^3.3.8",
     "google-spreadsheet": "^2.0.4",
     "pdfkit": "^0.8.3",
     "request": "^2.85.0",
